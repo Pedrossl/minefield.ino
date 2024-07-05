@@ -2,7 +2,6 @@
 #include <MatrizLed.h>
 #include <MD_MAX72xx.h>
 
-// Definições de pinos e constantes
 #define PIN_ANALOG_X 0
 #define PIN_ANALOG_Y 1
 
