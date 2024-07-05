@@ -85,7 +85,6 @@ void loop() {
     matriz.setPoint(posicaoAtualColuna, posicaoAtualLinha, true);
 
     if (bombas[posicaoAtualLinha][posicaoAtualColuna]) {
-      Serial.println("explodi");
       pintadorDeLed(255,0,0);
       digitalWrite(PIN_BIPE, HIGH);
       delay(1000);
@@ -155,23 +154,18 @@ void verificarBombasVizinhas(int linha, int coluna) {
 void verificarBotao(int botao, unsigned long &lastButtonPressTime, unsigned long currentMillis, int deltaColuna, int deltaLinha) {
   if (digitalRead(botao) == LOW && currentMillis - lastButtonPressTime > DEBOUNCE_DELAY) {
     lastButtonPressTime = currentMillis;
-    Serial.print("Botão pressionado: ");
     pintadorDeLed(0,0,0);
-    Serial.println(botao);
 
     if (bombas[posicaoAtualLinha][posicaoAtualColuna] && !botaoAnalogicoPressionado) {
       bombas[posicaoAtualLinha][posicaoAtualColuna] = true;
-      Serial.println("Deixei a bomba Visivel 1");
     }
 
     if (estadoLEDs[posicaoAtualLinha][posicaoAtualColuna] && !botaoAnalogicoPressionado) {
-            Serial.println("Deixei a bomba Visivel 2");
 
       estadoLEDs[posicaoAtualLinha][posicaoAtualColuna] = true;
       matriz.setPoint(posicaoAtualColuna, posicaoAtualLinha, true);
       botaoAnalogicoPressionado = true;
     } else if (!botaoAnalogicoPressionado) {
-            Serial.println("Deixei a bomba Visivel 3");
 
       matriz.setPoint(posicaoAtualColuna, posicaoAtualLinha, false);
     }
@@ -180,7 +174,6 @@ void verificarBotao(int botao, unsigned long &lastButtonPressTime, unsigned long
     posicaoAtualColuna = constrain(posicaoAtualColuna + deltaColuna, 0, 7);
     posicaoAtualLinha = constrain(posicaoAtualLinha + deltaLinha, 0, 7);
     matriz.setPoint(posicaoAtualColuna, posicaoAtualLinha, true);
-          Serial.println("Deixei a bomba Visivel 4");
 
   }
 }
