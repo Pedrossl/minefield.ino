@@ -139,16 +139,28 @@ void pintadorDeLed(int r,int g, int b){
 
 void verificarBombasVizinhas(int linha, int coluna) {
   int direcoes[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+  int contadorBombas = 0;
+
   for (int i = 0; i < 4; i++) {
     int novaLinha = linha + direcoes[i][0];
     int novaColuna = coluna + direcoes[i][1];
 
     if (novaLinha >= 0 && novaLinha < 8 && novaColuna >= 0 && novaColuna < 8) {
       if (bombas[novaLinha][novaColuna]) {
-        pintadorDeLed(255, 100, 0); 
+        contadorBombas++;
       }
     }
   }
+
+  if (contadorBombas == 0) {
+    pintadorDeLed(0, 255, 0); 
+  } else if (contadorBombas > 0) {
+      for (int j = 0; j < contadorBombas;) {
+    RODA_LED.setPixelColor(j,255,0,0);
+    RODA_LED.show();
+    i++;
+  }
+
 }
 
 void verificarBotao(int botao, unsigned long &lastButtonPressTime, unsigned long currentMillis, int deltaColuna, int deltaLinha) {
