@@ -23,6 +23,7 @@
 #define MAX_TAMANHO_PONTO 5
 #define NUM_BOMBAS 15
 #define PIN_BIPE 13
+#define VITORIA 10
 
 char ligados[MAX_PONTOS][MAX_TAMANHO_PONTO];
 int numPontos = 0;
@@ -40,8 +41,7 @@ bool rodarColorido = false;
 MD_MAX72XX matriz(TIPO_DO_HARDWARE, DATA_PIN, CLK_PIN, CS_PIN, MAX_MODULOS);
 MatrizLed Display8X8;
 
-Adafruit_NeoPixel RODA_LED = Adafruit_NeoPixel (QTD_RODA,
-PIN_RODA, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel RODA_LED = Adafruit_NeoPixel(QTD_RODA, PIN_RODA, NEO_GRB + NEO_KHZ800);
 
 int posicaoAtualLinha = 0;
 int posicaoAtualColuna = 0;
@@ -80,32 +80,34 @@ void loop() {
   if (digitalRead(PIN_BOTAO_ANALOGICO) == LOW && currentMillis - lastButtonPressTimeAnalog > DEBOUNCE_DELAY) {
     lastButtonPressTimeAnalog = currentMillis;
     botaoAnalogicoPressionado = true;
-        lugaresSegurosMarcados++; 
-    pintadorDeLed(0,255,0);
+    lugaresSegurosMarcados++;
+    pintadorDeLed(0, 255, 0);
     matriz.setPoint(posicaoAtualColuna, posicaoAtualLinha, true);
 
     if (bombas[posicaoAtualLinha][posicaoAtualColuna]) {
-      pintadorDeLed(255,0,0);
+      pintadorDeLed(255, 0, 0);
       digitalWrite(PIN_BIPE, HIGH);
       delay(1000);
       digitalWrite(PIN_BIPE, LOW);
       matriz.clear();
     } else {
-      verificarBombasVizinhas(posicaoAtualLinha, posicaoAtualColuna); 
+      verificarBombasVizinhas(posicaoAtualLinha, posicaoAtualColuna);
     }
 
-      estadoLEDs[posicaoAtualLinha][posicaoAtualColuna] = true;
+    estadoLEDs[posicaoAtualLinha][posicaoAtualColuna] = true;
 
     if (numPontos < MAX_PONTOS) {
       sprintf(ligados[numPontos], "%d,%d", posicaoAtualColuna, posicaoAtualLinha);
       numPontos++;
     }
-   if (lugaresSegurosMarcados >= 30) {
-      rodarColorido = true; 
+
+    if (lugaresSegurosMarcados >= VITORIA) {
+      rodarColorido = true;
     }
-      if (rodarColorido) {
-    animacaoColorida();
-  }
+
+    if (rodarColorido) {
+      animacaoColorida();
+    }
   }
 }
 
@@ -129,44 +131,53 @@ void randomizarBombas() {
   }
 }
 
-void pintadorDeLed(int r,int g, int b){
-  for (int i = 0; i < QTD_RODA;) {
-    RODA_LED.setPixelColor(i,r,g,b);
-    RODA_LED.show();
-    i++;
+void pintadorDeLed(int r, int g, int b) {
+  for (int i = 0; i < QTD_RODA; i++) {
+    RODA_LED.setPixelColor(i, r, g, b);
   }
+  RODA_LED.show();
 }
 
 void verificarBombasVizinhas(int linha, int coluna) {
   int direcoes[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+  int contadorBombas = 0;
+
   for (int i = 0; i < 4; i++) {
     int novaLinha = linha + direcoes[i][0];
     int novaColuna = coluna + direcoes[i][1];
 
     if (novaLinha >= 0 && novaLinha < 8 && novaColuna >= 0 && novaColuna < 8) {
       if (bombas[novaLinha][novaColuna]) {
-        pintadorDeLed(255, 100, 0); 
+        contadorBombas++;
       }
     }
+  }
+
+  if (contadorBombas == 0) {
+    pintadorDeLed(0, 255, 0);
+  } else if (contadorBombas > 0) {
+    pintadorDeLed(255, 100, 0);
+    for (int i = 0; i < contadorBombas; i++) {
+      RODA_LED.setPixelColor(i, 255, 0, 0);
+    }
+    RODA_LED.show();
   }
 }
 
 void verificarBotao(int botao, unsigned long &lastButtonPressTime, unsigned long currentMillis, int deltaColuna, int deltaLinha) {
   if (digitalRead(botao) == LOW && currentMillis - lastButtonPressTime > DEBOUNCE_DELAY) {
     lastButtonPressTime = currentMillis;
-    pintadorDeLed(0,0,0);
+    pintadorDeLed(0, 0, 0);
 
     if (bombas[posicaoAtualLinha][posicaoAtualColuna] && !botaoAnalogicoPressionado) {
       bombas[posicaoAtualLinha][posicaoAtualColuna] = true;
     }
 
     if (estadoLEDs[posicaoAtualLinha][posicaoAtualColuna] && !botaoAnalogicoPressionado) {
-
       estadoLEDs[posicaoAtualLinha][posicaoAtualColuna] = true;
       matriz.setPoint(posicaoAtualColuna, posicaoAtualLinha, true);
       botaoAnalogicoPressionado = true;
     } else if (!botaoAnalogicoPressionado) {
-
       matriz.setPoint(posicaoAtualColuna, posicaoAtualLinha, false);
     }
 
@@ -174,9 +185,9 @@ void verificarBotao(int botao, unsigned long &lastButtonPressTime, unsigned long
     posicaoAtualColuna = constrain(posicaoAtualColuna + deltaColuna, 0, 7);
     posicaoAtualLinha = constrain(posicaoAtualLinha + deltaLinha, 0, 7);
     matriz.setPoint(posicaoAtualColuna, posicaoAtualLinha, true);
-
   }
 }
+
 void animacaoColorida() {
   static int firstPixelHue = 0;
   for (int i = 0; i < RODA_LED.numPixels(); i++) {
